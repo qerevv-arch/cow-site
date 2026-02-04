@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Система Деревяшкина</title>
+  <meta name="theme-color" content="#F5F5DC" />
+  <style>
+    :root{
+      --bg:#F5F5DC;
+      --ink:#1b1b1b;
+      --muted:#4b4b4b;
+      --card:rgba(255,255,255,.66);
+      --stroke:rgba(27,27,27,.16);
+      --shadow: 0 18px 45px rgba(0,0,0,.10);
+      --radius: 22px;
+      --serif: Georgia, "Times New Roman", Times, serif;
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family:var(--serif);
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:geometricPrecision;
+      font-size: 18px;
+    }
+
+    .page{
+      min-height:100%;
+      padding: calc(14px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom)) 16px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    header{
+      position:sticky; top:0; z-index:10;
+      background: linear-gradient(to bottom, var(--bg) 70%, rgba(245,245,220,0));
+      padding-top: env(safe-area-inset-top);
+      padding-bottom:10px;
+      backdrop-filter: blur(6px);
+    }
+    .topbar{
+      max-width:980px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{line-height:1.05;}
+    .brand .title{font-size:clamp(22px,2.6vw,30px); letter-spacing:.2px;}
+    .brand .subtitle{margin-top:4px; color:var(--muted); font-size:clamp(13px,1.9vw,15px);}
+
+    .lang{
+      display:flex; gap:8px;
+      background: rgba(255,255,255,.55);
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      padding:6px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.06);
+    }
+    .lang button{
+      border:0; background:transparent; cursor:pointer;
+      font-family:var(--serif);
+      font-size:15px;
+      padding:8px 12px;
+      border-radius:999px;
+      color:var(--muted);
+      transition: transform .08s ease, background .2s ease, color .2s ease;
+      user-select:none;
+    }
+    .lang button:hover{transform: translateY(-1px);}
+    .lang button.active{background: rgba(27,27,27,.08); color:var(--ink);}
+
+    main{max-width:980px; margin:0 auto; width:100%; display:grid; grid-template-columns:1fr; gap:14px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .hero{text-align:center; padding:18px 18px 12px;}
+    .hero h1{margin:0 0 10px; font-weight:700; font-size:clamp(26px,3.8vw,42px);}
+    .hero p{margin:0 auto; max-width:68ch; color:var(--muted); font-size:clamp(18px,2.2vw,20px); line-height:1.55;}
+
+    /* Bigger, readable main text */
+    .textblock h2{margin:0; font-size:clamp(20px,2.6vw,24px);}
+    .textblock p{margin:0; line-height:1.78; font-size:clamp(19px,2.25vw,22px);}
+    .textblock .muted{color:var(--muted);}
+    .textblock ul{margin:0; padding-inline-start:1.2em; line-height:1.78; color:var(--muted); font-size:clamp(18px,2.2vw,20px);}
+    .divider{height:1px; background: rgba(27,27,27,.12); margin:12px 0;}
+
+    footer{max-width:980px; margin:0 auto; width:100%;}
+    .footer-note{text-align:center; font-size:15px; color: rgba(27,27,27,.70); padding:10px 0 0;}
+    .commentsTitle{margin: 0 0 10px; color: var(--muted); font-size:15px;}
+    #cusdis_thread{
+      background: rgba(255,255,255,.55);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    /* --- Bottom scene (tree + walking cow) --- */
+    .scene{
+      position: fixed;
+      left: 0; right: 0;
+      bottom: 0;
+      height: 98px;
+      pointer-events:none;
+      z-index: 9;
+    }
+    .scene::before{
+      content:"";
+      position:absolute; left:0; right:0; bottom:0;
+      height: 98px;
+      background: linear-gradient(to top, rgba(245,245,220,1), rgba(245,245,220,0));
+    }
+    .grassline{
+      position:absolute; left:0; right:0; bottom: 24px;
+      height:1px; background: rgba(27,27,27,.14);
+    }
+
+    .tree{
+      position:absolute;
+      left: 12px;
+      bottom: 10px;
+      width: 96px;
+      height: 96px;
+      opacity: .98;
+    }
+    @media (min-width: 860px){
+      .tree{ left: 40px; width: 108px; height: 108px; }
+    }
+
+    .cowWrap{
+      position:absolute;
+      bottom: 0px;
+      width: 106px;
+      height: 106px;
+      transform: translateX(0);
+      transition: transform 1.35s cubic-bezier(.2,.8,.2,1);
+      pointer-events:auto;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 860px){
+      .cowWrap{ width: 122px; height:122px; }
+    }
+
+    /* flip + scale handled in JS */
+    .cowSvg{
+      width:100%; height:100%;
+      filter: drop-shadow(0 12px 14px rgba(0,0,0,.14));
+      transform-origin: 50% 70%;
+    }
+
+    .bubble{
+      position: fixed;
+      bottom: 140px;
+      max-width: min(82vw, 420px);
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(27,27,27,.16);
+      border-radius: 18px;
+      padding: 12px 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.09);
+      font-size: 18px;
+      line-height: 1.35;
+      display:none;
+      z-index: 11;
+    }
+    .bubble::after{
+      content:"";
+      position:absolute;
+      bottom:-10px;
+      inset-inline-start: 22px;
+      width: 18px; height: 18px;
+      background: rgba(255,255,255,.82);
+      border-left: 1px solid rgba(27,27,27,.16);
+      border-bottom: 1px solid rgba(27,27,27,.16);
+      transform: rotate(45deg);
+      border-bottom-left-radius: 6px;
+    }
+
+    /* RTL tweaks */
+    html[dir="rtl"] .brand { text-align:right; }
+    html[dir="rtl"] .hero { text-align:right; }
+    html[dir="rtl"] .hero p { margin-inline-start:0; }
+    html[dir="rtl"] .textblock { text-align:right; }
+    html[dir="rtl"] .textblock ul { padding-inline-start:0; padding-inline-end:1.2em; }
+    html[dir="rtl"] .bubble { text-align:right; }
+    html[dir="rtl"] .bubble::after { inset-inline-start:auto; inset-inline-end: 22px; }
+
+    /* Cow micro-animations */
+    @keyframes bob { 0%,100%{transform: translateY(0)} 50%{transform: translateY(-3px)} }
+    .cowBody { transform-origin: 50% 78%; animation: bob 2.0s ease-in-out infinite; }
+
+    /* walking */
+    @keyframes walkLegF { 0%,100%{transform: rotate(9deg)} 50%{transform: rotate(-10deg)} }
+    @keyframes walkLegB { 0%,100%{transform: rotate(-9deg)} 50%{transform: rotate(10deg)} }
+    .isWalk .legFront { transform-origin: 50% 0%; animation: walkLegF .55s ease-in-out infinite; }
+    .isWalk .legBack  { transform-origin: 50% 0%; animation: walkLegB .55s ease-in-out infinite; }
+
+    /* chew */
+    @keyframes chew { 0%,100%{transform: translateY(0) rotate(0)} 50%{transform: translateY(1px) rotate(1deg)} }
+    .isChew .jaw { transform-origin: 50% 50%; animation: chew .55s ease-in-out infinite; }
+    .isChew .grass { opacity:1; animation: chew .55s ease-in-out infinite reverse; }
+
+    /* scratch (sit + hoof to udder) */
+    @keyframes sit { 0%,100%{transform: translateY(0)} 50%{transform: translateY(5px)} }
+    @keyframes scratch { 0%,100%{transform: rotate(0) translateY(0)} 50%{transform: rotate(-14deg) translateY(-4px)} }
+    .isScratch .cowBody { animation: sit .65s ease-in-out infinite; }
+    .isScratch .rearLegScratch { transform-origin: 60% 12%; animation: scratch .42s ease-in-out infinite; }
+    .isScratch .udder { transform-origin: 60% 50%; animation: chew .42s ease-in-out infinite; }
+
+    /* smile */
+    @keyframes blink { 0%,92%,100%{transform: scaleY(1)} 94%,96%{transform: scaleY(.12)} }
+    .isSmile .eye { transform-origin:center; animation: blink 3.2s ease-in-out infinite; }
+    .isSmile .mouthHappy { opacity:1; }
+
+    .grass{opacity:0;}
+    .mouthHappy{opacity:0;}
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="topbar">
+        <div class="brand">
+          <div class="title" data-i18n="siteTitle">Система Деревяшкина</div>
+          <div class="subtitle" data-i18n="siteTagline">Мой путь к ясности 🌿</div>
+        </div>
+
+        <nav class="lang" aria-label="Language switcher">
+          <button type="button" class="active" data-lang="ru">RU</button>
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="he">HE</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="card hero">
+        <h1 data-i18n="headline">Система Деревяшкина: Мой путь к ясности 🌿</h1>
+        <p data-i18n="subhead">Тихая практика ясности: питание, движение, и немного юмора — чтобы держать курс.</p>
+      </section>
+
+      <article class="card textblock" aria-label="Main text">
+        <h2 data-i18n="hHello">Здравствуйте.</h2>
+        <p data-i18n="pHello">
+          Этот сайт — не теория и не лозунг. Это тихий разговор о том, как вернуть себе внутренний свет.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2 data-i18n="hStart">С чего всё началось</h2>
+        <p data-i18n="pStart">
+          Когда-то я жил в состоянии размытости — будто на стекле сознания лежал тонкий слой пыли.
+          Силы уходили незаметно, настроение колебалось, а тело казалось тяжёлым, словно носило лишний груз.
+          Я начал убирать из жизни то, что этот груз создаёт: сахар, хлеб, молоко, большинство фруктов и полуфабрикаты.
+          Спокойно и внимательно — без фанатизма и без резких рывков.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2 data-i18n="hChange">Что изменилось</h2>
+        <ul data-i18n-list="changes">
+          <li>Я перестал ощущать постоянную слабость и тяжесть — голова стала яснее.</li>
+          <li>Я просыпаюсь на работу в 5 утра без внутренней борьбы.</li>
+          <li>После работы иду на тренажёры, потом — пешком за продуктами, и возвращаюсь домой легко.</li>
+          <li>Когда убираешь лишнее, появляется ровная энергия — без сладких качелей.</li>
+        </ul>
+
+        <p class="muted" data-i18n="pPrecision">
+          Я не проповедую. Я просто выбираю простые решения и аккуратность — чтобы жить спокойнее и чище.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2 data-i18n="hDay">Мой день — это движение</h2>
+        <p data-i18n="pDay">
+          Движение для меня — не “спорт ради спорта”, а способ держать тело и голову в правильном тоне.
+          Тренажёры дают силу, пилатес — спину и контроль, ходьба — природную устойчивость.
+        </p>
+
+        <div class="divider"></div>
+
+        <h2 data-i18n="hEssence">В чём суть</h2>
+        <p data-i18n="pEssence">
+          В мире много шума и лишнего. А путь к ясности часто начинается с маленьких шагов.
+          Если вам близка эта идея — добро пожаловать.
+        </p>
+      </article>
+    </main>
+
+    <footer>
+      <div class="commentsTitle" data-i18n="commentsTitle">Комментарии</div>
+
+      <div id="cusdis_thread"
+        data-host="https://cusdis.com"
+        data-app-id="de1e330b-03ee-413c-a947-7542f49aaf75"
+        data-page-id="{{ PAGE_ID }}"
+        data-page-url="{{ PAGE_URL }}"
+        data-page-title="{{ PAGE_TITLE }}"
+      ></div>
+
+      <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+
+      <div class="footer-note" id="footerNote">Сайт создан сегодня за 30 минут. Дата: 04.02.2026.</div>
+    </footer>
+  </div>
+
+  <!-- Bottom scene -->
+  <div class="scene" aria-hidden="true">
+    <div class="grassline"></div>
+
+    <!-- Apple tree (SVG) -->
+    <svg class="tree" viewBox="0 0 120 120" role="img" aria-label="Apple tree">
+      <defs>
+        <radialGradient id="leafg" cx="35%" cy="30%" r="70%">
+          <stop offset="0" stop-color="#86c56a" />
+          <stop offset="1" stop-color="#4f7f35" />
+        </radialGradient>
+      </defs>
+      <path d="M58 112 C56 96, 55 82, 56 70 C57 58, 52 46, 45 38 C42 35, 43 30, 47 30
+               C58 30, 67 41, 70 54 C72 63, 72 74, 70 88 C69 98, 70 106, 73 112 Z"
+            fill="#6b4c31" opacity="0.98"/>
+      <circle cx="60" cy="46" r="36" fill="url(#leafg)" stroke="rgba(27,27,27,.18)" stroke-width="2"/>
+      <circle cx="36" cy="58" r="22" fill="url(#leafg)" opacity="0.95"/>
+      <circle cx="84" cy="60" r="22" fill="url(#leafg)" opacity="0.95"/>
+
+      <!-- apples with ids -->
+      <circle id="apple1" cx="45" cy="44" r="6.2" fill="#c84a3a" />
+      <circle id="apple2" cx="76" cy="50" r="6.2" fill="#c84a3a" />
+      <circle id="apple3" cx="62" cy="70" r="6.2" fill="#c84a3a" />
+      <path d="M45 36 C46 32, 50 30, 54 31" fill="none" stroke="#2f5f2d" stroke-width="2" stroke-linecap="round"/>
+      <path d="M76 42 C77 38, 81 36, 85 37" fill="none" stroke="#2f5f2d" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+
+    <!-- Cow (SVG) -->
+    <div class="cowWrap isChew" id="cowWrap" role="button" aria-label="Cow">
+      <svg class="cowSvg" viewBox="0 0 140 140" aria-hidden="true" id="cowSvg">
+        <defs>
+          <linearGradient id="milkBody" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#fff9f2"/>
+            <stop offset="1" stop-color="#efe2d3"/>
+          </linearGradient>
+          <linearGradient id="spot" x1="0" x2="1">
+            <stop offset="0" stop-color="#7b5a3a"/>
+            <stop offset="1" stop-color="#5f442c"/>
+          </linearGradient>
+        </defs>
+
+        <g class="cowBody">
+          <!-- shadow -->
+          <ellipse cx="78" cy="128" rx="44" ry="9" fill="rgba(0,0,0,.10)"/>
+
+          <!-- tail -->
+          <path d="M120 78 C133 84, 134 100, 122 108" fill="none" stroke="rgba(27,27,27,.28)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M123 108 C128 110, 130 116, 125 120 C119 125, 112 122, 113 116" fill="#d9a7a7" stroke="rgba(27,27,27,.18)" stroke-width="2"/>
+
+          <!-- body -->
+          <path d="M52 58
+                   C54 40, 70 30, 90 32
+                   C114 35, 128 52, 124 76
+                   C120 98, 104 112, 84 112
+                   C64 112, 50 98, 50 82
+                   Z"
+                fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
+
+          <!-- spots -->
+          <path d="M72 48 C63 50, 60 60, 67 67 C75 75, 92 68, 88 56 C85 48, 79 46, 72 48 Z" fill="url(#spot)" opacity=".92"/>
+          <path d="M98 70 C90 72, 88 84, 96 90 C106 98, 122 86, 116 74 C112 66, 106 68, 98 70 Z" fill="url(#spot)" opacity=".92"/>
+
+          <!-- neck -->
+          <path d="M50 78 C36 76, 34 90, 44 100 C54 110, 66 104, 64 92" fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
+
+          <!-- head -->
+          <path d="M22 86
+                   C18 66, 34 52, 54 56
+                   C72 60, 78 76, 72 94
+                   C66 112, 48 116, 34 110
+                   C26 106, 23 98, 22 86 Z"
+                fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
+
+          <!-- bangs (forelock) -->
+          <path d="M48 58 C44 54, 40 54, 36 57 C34 58, 33 56, 35 54
+                   C40 48, 50 48, 56 54 C58 56, 56 58, 54 57
+                   C52 56, 50 57, 48 58 Z"
+                fill="#caa07a" opacity=".9" stroke="rgba(27,27,27,.10)" stroke-width="1"/>
+
+          <!-- ears -->
+          <path d="M36 62 C26 56, 14 60, 13 70 C12 80, 22 86, 32 80" fill="#f1d9c7" stroke="rgba(27,27,27,.16)" stroke-width="2"/>
+          <path d="M62 66 C74 62, 84 70, 82 82 C80 92, 70 96, 60 88" fill="#f1d9c7" stroke="rgba(27,27,27,.16)" stroke-width="2"/>
+
+          <!-- tiny horns -->
+          <path d="M40 54 C38 46, 48 44, 52 50" fill="none" stroke="rgba(27,27,27,.22)" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M56 54 C60 48, 70 50, 66 58" fill="none" stroke="rgba(27,27,27,.22)" stroke-width="3.2" stroke-linecap="round"/>
+
+          <!-- snout -->
+          <path d="M30 96 C34 86, 50 84, 60 88 C70 92, 72 104, 64 110
+                   C56 116, 40 116, 32 108 C28 104, 28 100, 30 96 Z"
+                fill="#d9a7a7" stroke="rgba(27,27,27,.16)" stroke-width="2.4"/>
+          <ellipse cx="44" cy="104" rx="3.2" ry="2.2" fill="rgba(27,27,27,.42)"/>
+          <ellipse cx="56" cy="106" rx="3.2" ry="2.2" fill="rgba(27,27,27,.42)"/>
+
+          <!-- big eyes + lashes -->
+          <g class="eye">
+            <ellipse cx="38" cy="78" rx="8.6" ry="9.2" fill="#fff" opacity=".96"/>
+            <circle cx="40" cy="80" r="4.3" fill="#1b1b1b"/>
+            <circle cx="38.8" cy="78.6" r="1.4" fill="#fff" opacity=".9"/>
+            <path d="M31 70 L26 66" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M35 68 L33 62" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M40 68 L41 62" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <g class="eye">
+            <ellipse cx="60" cy="82" rx="8.6" ry="9.2" fill="#fff" opacity=".96"/>
+            <circle cx="61.8" cy="84" r="4.3" fill="#1b1b1b"/>
+            <circle cx="60.5" cy="82.6" r="1.4" fill="#fff" opacity=".9"/>
+            <path d="M53 74 L49 70" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M57 72 L56 66" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M62 72 L64 66" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
+          </g>
+
+          <!-- mouth -->
+          <path d="M40 112 C48 120, 58 118, 62 110" fill="none" stroke="rgba(27,27,27,.44)" stroke-width="3" stroke-linecap="round"/>
+          <path class="mouthHappy" d="M36 110 C46 124, 62 122, 66 106" fill="none" stroke="rgba(27,27,27,.62)" stroke-width="3.6" stroke-linecap="round"/>
+
+          <!-- jaw -->
+          <g class="jaw">
+            <path d="M28 108 C34 116, 52 120, 66 114" fill="none" stroke="rgba(27,27,27,.20)" stroke-width="4" stroke-linecap="round"/>
+          </g>
+
+          <!-- grass -->
+          <g class="grass">
+            <path d="M12 110 C4 112, 4 122, 13 124 C20 126, 24 118, 19 114 C17 112, 15 109, 12 110 Z"
+                  fill="#6aa84f" stroke="rgba(27,27,27,.14)" stroke-width="2"/>
+            <path d="M12 118 C16 118, 18 121, 20 123" fill="none" stroke="rgba(27,27,27,.12)" stroke-width="1.6" stroke-linecap="round"/>
+          </g>
+
+          <!-- legs (front/back) -->
+          <g class="legFront">
+            <path d="M72 108 C70 118, 74 126, 82 126 C90 126, 90 116, 88 108" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
+            <rect x="76" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
+          </g>
+
+          <g class="legFront">
+            <path d="M90 108 C88 118, 92 126, 100 126 C108 126, 108 116, 106 108" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
+            <rect x="94" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
+          </g>
+
+          <g class="legBack">
+            <path d="M104 104 C102 114, 106 126, 116 126 C124 126, 124 114, 120 106" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
+            <rect x="110" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
+          </g>
+
+          <!-- scratching leg (rear) -->
+          <g class="legBack rearLegScratch">
+            <path d="M112 96 C124 104, 124 126, 112 126 C104 126, 100 114, 106 104" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
+            <rect x="108" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
+          </g>
+
+          <!-- udder -->
+          <g class="udder">
+            <path d="M92 100 C94 90, 104 88, 112 92 C120 96, 122 106, 116 112
+                     C110 118, 98 118, 94 110 C92 106, 91 103, 92 100 Z"
+                  fill="#d9a7a7" stroke="rgba(27,27,27,.16)" stroke-width="2.3"/>
+            <circle cx="101" cy="114" r="2.2" fill="rgba(27,27,27,.18)"/>
+            <circle cx="110" cy="115" r="2.2" fill="rgba(27,27,27,.18)"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="bubble" id="bubble"></div>
+
+  <script>
+    const DATE_STR = "04.02.2026";
+
+    const i18n = {
+      ru: {
+        dir: "ltr",
+        siteTitle: "Система Деревяшкина",
+        siteTagline: "Мой путь к ясности 🌿",
+        headline: "Система Деревяшкина: Мой путь к ясности 🌿",
+        subhead: "Тихая практика ясности: питание, движение, и немного юмора — чтобы держать курс.",
+        hHello: "Здравствуйте.",
+        pHello: "Этот сайт — не теория и не лозунг. Это тихий разговор о том, как вернуть себе внутренний свет.",
+        hStart: "С чего всё началось",
+        pStart: "Когда-то я жил в состоянии размытости — будто на стекле сознания лежал тонкий слой пыли. Силы уходили незаметно, настроение колебалось, а тело казалось тяжёлым, словно носило лишний груз. Я начал убирать из жизни то, что этот груз создаёт: сахар, хлеб, молоко, большинство фруктов и полуфабрикаты. Спокойно и внимательно — без фанатизма и без резких рывков.",
+        hChange: "Что изменилось",
+        changes: [
+          "Я перестал ощущать постоянную слабость и тяжесть — голова стала яснее.",
+          "Я просыпаюсь на работу в 5 утра без внутренней борьбы.",
+          "После работы иду на тренажёры, потом — пешком за продуктами, и возвращаюсь домой легко.",
+          "Когда убираешь лишнее, появляется ровная энергия — без сладких качелей."
+        ],
+        pPrecision: "Я не проповедую. Я просто выбираю простые решения и аккуратность — чтобы жить спокойнее и чище.",
+        hDay: "Мой день — это движение",
+        pDay: "Движение для меня — не “спорт ради спорта”, а способ держать тело и голову в правильном тоне. Тренажёры дают силу, пилатес — спину и контроль, ходьба — природную устойчивость.",
+        hEssence: "В чём суть",
+        pEssence: "В мире много шума и лишнего. А путь к ясности часто начинается с маленьких шагов. Если вам близка эта идея — добро пожаловать.",
+        commentsTitle: "Комментарии",
+        footerNote: `Сайт создан сегодня за 30 минут. Дата: ${DATE_STR}.`,
+        bubble: {
+          chew: "Жую яблоко и травинку. Сахар — мимо. Легко жить — приятно жить.",
+          scratch: "Села по-домашнему. Чешу вымя копытом — и улыбаюсь ресницами.",
+          smile: "Улыбаюсь. Ты держишь курс — я держу настроение.",
+          eat: "О! Яблочко! Сейчас аккуратно…",
+          idle: "Эй… ты завис? Пошли двигаться. Лёгкость сама себя не сделает."
+        }
+      },
+      en: {
+        dir: "ltr",
+        siteTitle: "Derevyashkin System",
+        siteTagline: "My path to clarity 🌿",
+        headline: "Derevyashkin System: My path to clarity 🌿",
+        subhead: "A quiet practice: food, movement, and a bit of humor — to keep the course.",
+        hHello: "Hello.",
+        pHello: "This site isn’t a manifesto. It’s a calm talk about getting your inner light back.",
+        hStart: "How it started",
+        pStart: "I used to feel blurred — like a thin layer of dust on the glass of awareness. Energy leaked, mood swung, and the body carried extra weight. I started removing what creates that load: sugar, bread, milk, most fruits, and processed foods — calmly and carefully.",
+        hChange: "What changed",
+        changes: [
+          "Less weakness and heaviness — clearer head.",
+          "Waking up for work at 5 a.m. without inner struggle.",
+          "After work: gym, then walking for groceries — and still feeling light.",
+          "When you remove the excess, steady energy appears — no sweet swings."
+        ],
+        pPrecision: "No preaching. Just simple choices and carefulness — for a calmer, cleaner life.",
+        hDay: "My day is movement",
+        pDay: "Movement is not sport for sport’s sake. It’s tone for body and mind: gym for strength, pilates for back and control, walking for natural stability.",
+        hEssence: "What’s the point?",
+        pEssence: "There’s a lot of noise. Clarity often starts with small steps. If this idea resonates — welcome.",
+        commentsTitle: "Comments",
+        footerNote: `Site made today in 30 minutes. Date: ${DATE_STR}.`,
+        bubble: {
+          chew: "Chewing apple and grass. Sugar? No thanks. Light feels good.",
+          scratch: "Sitting comfy. Scratching the udder with a hoof — eyelashes included.",
+          smile: "Smiling. You keep the course — I keep the vibe.",
+          eat: "Oh! An apple! Neatly…",
+          idle: "Hey… stuck? Let’s move. Lightness doesn’t craft itself."
+        }
+      },
+      he: {
+        dir: "rtl",
+        siteTitle: "המערכת של דרביישקין",
+        siteTagline: "הדרך שלי לבהירות 🌿",
+        headline: "המערכת של דרביישקין: הדרך שלי לבהירות 🌿",
+        subhead: "תרגול שקט: אוכל, תנועה וקצת הומור — כדי לשמור על כיוון.",
+        hHello: "שלום.",
+        pHello: "זה לא מניפסט. זו שיחה רגועה על איך להחזיר אור פנימי.",
+        hStart: "איך זה התחיל",
+        pStart: "פעם הרגשתי מטושטש — כאילו שכבת אבק דקה על זכוכית המודעות. אנרגיה דלפה, מצב הרוח התנדנד, והגוף נשא משקל עודף. התחלתי להסיר את מה שיוצר את העומס: סוכר, לחם, חלב, רוב הפירות ומזון מעובד — ברוגע ובזהירות.",
+        hChange: "מה השתנה",
+        changes: [
+          "פחות חולשה וכבדות — ראש בהיר יותר.",
+          "לקום לעבודה ב־5 בבוקר בלי מאבק פנימי.",
+          "אחרי העבודה: חדר כושר ואז הליכה לקניות — ועדיין להרגיש קל.",
+          "כשמסירים עודף, מגיעה אנרגיה יציבה — בלי נדנדות מתוקות."
+        ],
+        pPrecision: "בלי הטפות. רק בחירות פשוטות וזהירות — לחיים רגועים ונקיים יותר.",
+        hDay: "היום שלי הוא תנועה",
+        pDay: "תנועה היא לא 'ספורט לשם ספורט'. זו תחזוקה לגוף ולראש: כוח בחדר כושר, שליטה בגב עם פילאטיס, ויציבות טבעית בהליכה.",
+        hEssence: "מה העיקר?",
+        pEssence: "יש הרבה רעש ומיותר. בהירות מתחילה לעיתים מצעדים קטנים. אם זה מדבר אליכם — ברוכים הבאים.",
+        commentsTitle: "תגובות",
+        footerNote: `האתר נבנה היום ב־30 דקות. תאריך: ${DATE_STR}.`,
+        bubble: {
+          chew: "לועסת תפוח ועשב. סוכר? לא תודה. קל — טוב.",
+          scratch: "יושבת בנוח. מגרדת את העטין בפרסה — עם ריסים.",
+          smile: "מחייכת. אתם מחזיקים כיוון — אני מחזיקה מצב רוח.",
+          eat: "הו! תפוח! בעדינות…",
+          idle: "היי… נתקעתם? בואו נזוז. קלילות לא נוצרת לבד."
+        }
+      }
+    };
+
+    // --- language switch ---
+    const root = document.documentElement;
+    const langButtons = document.querySelectorAll(".lang button");
+    const footerNote = document.getElementById("footerNote");
+
+    function applyLang(lang){
+      const dict = i18n[lang] || i18n.ru;
+      root.lang = lang;
+      root.dir = dict.dir;
+      root.setAttribute("dir", dict.dir);
+
+      langButtons.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const key = el.getAttribute("data-i18n");
+        if(dict[key] != null) el.textContent = dict[key];
+      });
+
+      // lists
+      document.querySelectorAll("[data-i18n-list='changes']").forEach(ul=>{
+        ul.innerHTML = "";
+        dict.changes.forEach(item=>{
+          const li = document.createElement("li");
+          li.textContent = item;
+          ul.appendChild(li);
+        });
+      });
+
+      // footer
+      footerNote.textContent = dict.footerNote;
+
+      // update bubble for current state
+      setBubbleText(currentState);
+    }
+
+    langButtons.forEach(btn => btn.addEventListener("click", () => applyLang(btn.dataset.lang)));
+
+    // --- Cusdis: fill placeholders so it works without templating ---
+    (function hydrateCusdis(){
+      const el = document.getElementById("cusdis_thread");
+      if(!el) return;
+      try{
+        el.setAttribute("data-page-id", location.pathname || "home");
+        el.setAttribute("data-page-url", location.href);
+        el.setAttribute("data-page-title", document.title || "Система Деревяшкина");
+      }catch(e){}
+    })();
+
+    // --- Cow behavior ---
+    const cowWrap = document.getElementById("cowWrap");
+    const cowSvg = document.getElementById("cowSvg");
+    const bubble = document.getElementById("bubble");
+    const apples = ["apple1","apple2","apple3"].map(id => document.getElementById(id)).filter(Boolean);
+
+    const states = ["chew","scratch","smile"];
+    let stateIndex = 0;
+    let currentState = states[stateIndex];
+
+    // positions are fractions of viewport width
+    const walk = {
+      rightHome: 0.82,
+      nearTree: 0.16,
+      center: 0.50
+    };
+    let cowX = walk.rightHome;
+
+    function setCowState(state){
+      cowWrap.classList.remove("isChew","isScratch","isSmile","isWalk");
+      if(state === "chew") cowWrap.classList.add("isChew");
+      if(state === "scratch") cowWrap.classList.add("isScratch");
+      if(state === "smile") cowWrap.classList.add("isSmile");
+      currentState = state;
+      setBubbleText(state);
+    }
+
+    function setBubbleText(state, overrideText=null){
+      const dict = i18n[root.lang] || i18n.ru;
+      bubble.textContent = overrideText || (dict.bubble[state] || "");
+    }
+
+    function showBubbleAtCow(ms=2800){
+      const rect = cowWrap.getBoundingClientRect();
+      bubble.style.display = "block";
+
+      const bw = bubble.offsetWidth;
+      const maxLeft = window.innerWidth - bw - 12;
+      let left = rect.left + rect.width*0.10;
+      left = Math.max(12, Math.min(maxLeft, left));
+
+      bubble.style.left = left + "px";
+      bubble.style.right = "auto";
+      bubble.style.bottom = (window.innerHeight - rect.top + 12) + "px";
+
+      clearTimeout(showBubbleAtCow._t);
+      showBubbleAtCow._t = setTimeout(()=>{ bubble.style.display = "none"; }, ms);
+    }
+
+    function setFacing(targetFrac){
+      // flip if moving left
+      const goingLeft = targetFrac < cowX;
+      const sx = goingLeft ? -1 : 1;
+      // keep a slight scale for presence
+      cowSvg.style.transform = `scaleX(${sx}) scale(1)`;
+    }
+
+    function moveCowTo(frac){
+      setFacing(frac);
+      cowWrap.classList.add("isWalk");
+      const x = Math.round(window.innerWidth * frac) - Math.round(cowWrap.offsetWidth/2);
+      cowWrap.style.transform = "translateX(" + x + "px)";
+      // remove walking class after travel time
+      clearTimeout(moveCowTo._t);
+      moveCowTo._t = setTimeout(()=> cowWrap.classList.remove("isWalk"), 1100);
+      cowX = frac;
+    }
+
+    function animateEatApple(){
+      if(!apples.length) return;
+      const a = apples[Math.floor(Math.random() * apples.length)];
+      // if already animating, skip
+      if(a._busy) return;
+      a._busy = True = true;
+      const anim = a.animate(
+        [
+          { transform: "translate(0,0)", opacity: 1 },
+          { transform: "translate(0,38px) scale(0.9)", opacity: 0 }
+        ],
+        { duration: 900, easing: "ease-in" }
+      );
+      anim.onfinish = () => {
+        a.style.opacity = "0";
+        // respawn
+        setTimeout(()=>{
+          a.style.opacity = "1";
+          a._busy = false;
+        }, 1800);
+      };
+    }
+
+    function roamOnce(){
+      const target = (Math.random() < 0.55) ? walk.nearTree : walk.rightHome;
+      moveCowTo(target);
+
+      if(target === walk.nearTree){
+        // show "eat" + drop an apple, then chew
+        const dict = i18n[root.lang] || i18n.ru;
+        setBubbleText("eat", dict.bubble.eat);
+        showBubbleAtCow(2200);
+        animateEatApple();
+        setTimeout(()=>{
+          stateIndex = 0;
+          setCowState("chew");
+          showBubbleAtCow(2200);
+        }, 900);
+      }
+    }
+
+    // click cycles states + bubble
+    cowWrap.addEventListener("click", ()=>{
+      stateIndex = (stateIndex + 1) % states.length;
+      setCowState(states[stateIndex]);
+      showBubbleAtCow(3000);
+      resetIdle();
+    });
+
+    // idle: come center and tease, then go back
+    let idleTimer = null;
+    function resetIdle(){
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(()=>{
+        moveCowTo(walk.center);
+        setCowState("smile");
+        const dict = i18n[root.lang] || i18n.ru;
+        setBubbleText("idle", dict.bubble.idle);
+        showBubbleAtCow(5200);
+        setTimeout(()=>{
+          moveCowTo(walk.rightHome);
+          setCowState("chew");
+        }, 5600);
+      }, 24000);
+    }
+
+    ["mousemove","scroll","keydown","touchstart","click"].forEach(ev=>{
+      document.addEventListener(ev, resetIdle, {passive:true});
+    });
+
+    function initPositions(){
+      // place cow on the right at start
+      cowX = walk.rightHome;
+      cowSvg.style.transform = "scaleX(-1) scale(1)"; // facing left at first
+      const x = Math.round(window.innerWidth * walk.rightHome) - Math.round(cowWrap.offsetWidth/2);
+      cowWrap.style.transform = "translateX(" + x + "px)";
+    }
+    window.addEventListener("resize", initPositions);
+
+    // init
+    applyLang("ru");
+    setCowState("chew");
+    initPositions();
+    setInterval(roamOnce, 11000);
+    resetIdle();
+  </script>
+</body>
+</html>
