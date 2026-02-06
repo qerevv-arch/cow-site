@@ -1,119 +1,138 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Галерея</title>
-<style>
-  body { margin:0; font-family: Arial, sans-serif; background:#f5f5f5; }
-  header { padding:18px 20px; text-align:center; }
-  header a { text-decoration:none; color:#333; }
-  .wrap { max-width:1100px; margin:0 auto; padding:0 16px 30px; }
-  .grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap:14px;
-  }
-  .card {
-    background:#fff; border-radius:12px; overflow:hidden;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
-    cursor:pointer;
-  }
-  .card img { width:100%; height:240px; object-fit:cover; display:block; }
-  .hint { font-size:14px; opacity:.75; text-align:center; margin:8px 0 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Галерея</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f5f5f5; color:#222; }
+    header { padding:18px 16px; text-align:center; }
+    header a { text-decoration:none; color:#333; }
+    .wrap { max-width:1100px; margin:0 auto; padding:0 16px 28px; }
+    .note { font-size:14px; opacity:.75; text-align:center; margin:8px 0 14px; }
 
-  /* lightbox */
-  .lb {
-    position:fixed; inset:0; background:rgba(0,0,0,0.82);
-    display:none; align-items:center; justify-content:center;
-    padding:20px; z-index:9999;
-  }
-  .lb.open { display:flex; }
-  .lb img {
-    max-width: min(1100px, 95vw);
-    max-height: 90vh;
-    border-radius:14px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-    background:#111;
-  }
-  .lb .close {
-    position:absolute; top:14px; right:14px;
-    background:rgba(255,255,255,0.12); color:#fff;
-    border:0; border-radius:999px; padding:10px 14px;
-    cursor:pointer; font-size:14px;
-  }
-</style>
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap:14px;
+    }
+    .card{
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 4px 18px rgba(0,0,0,0.06);
+      cursor:pointer;
+    }
+    .card img{
+      width:100%;
+      height:240px;
+      object-fit:cover;
+      display:block;
+      background:#eee;
+    }
+
+    /* Lightbox */
+    .lb{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.82);
+      display:none; align-items:center; justify-content:center;
+      padding:18px;
+      z-index:9999;
+    }
+    .lb.open{ display:flex; }
+    .lb img{
+      max-width:min(1200px, 96vw);
+      max-height:90vh;
+      border-radius:16px;
+      box-shadow:0 12px 44px rgba(0,0,0,0.35);
+      background:#111;
+    }
+    .lb button{
+      position:absolute; top:14px; right:14px;
+      border:0; border-radius:999px;
+      padding:10px 14px;
+      background:rgba(255,255,255,0.14);
+      color:#fff; cursor:pointer;
+      font-size:14px;
+    }
+  </style>
 </head>
 
 <body>
-<header>
-  <a href="/">← Назад на главную</a>
-  <h1 style="margin:10px 0 0;">Галерея</h1>
-</header>
+  <header>
+    <a href="/">← Назад на главную</a>
+    <h1 style="margin:10px 0 0;">Галерея</h1>
+  </header>
 
-<div class="wrap">
-  <div id="grid" class="grid"></div>
-  <div class="hint">Добавление: Admin → Media → Upload. Картинки появятся сами.</div>
-</div>
+  <div class="wrap">
+    <div class="note">
+      Добавление картинок: Admin → Media → Upload (имена файлов только латиницей).
+    </div>
+    <div id="grid" class="grid"></div>
+    <div id="msg" class="note"></div>
+  </div>
 
-<div id="lb" class="lb" aria-hidden="true">
-  <button class="close" id="lbClose">Закрыть</button>
-  <img id="lbImg" alt="">
-</div>
+  <div id="lb" class="lb" aria-hidden="true">
+    <button id="closeBtn">Закрыть</button>
+    <img id="lbImg" alt="">
+  </div>
 
-<script>
-  // Показ всех картинок из /uploads/
-  // Работает, если сервер отдаёт список файлов. Если вдруг не отдаёт — скажу запасной вариант.
-  const grid = document.getElementById('grid');
-  const lb = document.getElementById('lb');
-  const lbImg = document.getElementById('lbImg');
-  const lbClose = document.getElementById('lbClose');
+  <script>
+    // Настройки твоего репо
+    const OWNER = "qerevv-arch";
+    const REPO  = "cow-site";
+    const BRANCH = "main";      // если вдруг у тебя master — поменяй на "master"
+    const FOLDER = "uploads";   // куда Decap CMS кладёт картинки
 
-  function openLB(src){
-    lbImg.src = src;
-    lb.classList.add('open');
-    lb.setAttribute('aria-hidden','false');
-  }
-  function closeLB(){
-    lb.classList.remove('open');
-    lb.setAttribute('aria-hidden','true');
-    lbImg.src = '';
-  }
-  lbClose.addEventListener('click', closeLB);
-  lb.addEventListener('click', (e)=>{ if(e.target === lb) closeLB(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeLB(); });
+    const grid = document.getElementById('grid');
+    const msg  = document.getElementById('msg');
 
-  fetch('/uploads/')
-    .then(r => r.text())
-    .then(html => {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const links = [...doc.querySelectorAll('a')].map(a => a.getAttribute('href')).filter(Boolean);
+    const lb = document.getElementById('lb');
+    const lbImg = document.getElementById('lbImg');
+    const closeBtn = document.getElementById('closeBtn');
 
-      const files = links
-        .filter(h => /\.(jpg|jpeg|png|webp)$/i.test(h))
-        .map(h => h.startsWith('http') ? h : '/uploads/' + h.replace(/^\/?uploads\/?/,''));
+    function openLB(src){ lbImg.src = src; lb.classList.add('open'); lb.setAttribute('aria-hidden','false'); }
+    function closeLB(){ lb.classList.remove('open'); lb.setAttribute('aria-hidden','true'); lbImg.src=''; }
 
-      if(files.length === 0){
-        grid.innerHTML = '<p style="text-align:center;opacity:.7">Пока нет картинок в uploads.</p>';
-        return;
-      }
+    closeBtn.addEventListener('click', closeLB);
+    lb.addEventListener('click', (e)=>{ if(e.target === lb) closeLB(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeLB(); });
 
-      files.forEach(src => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const img = document.createElement('img');
-        img.loading = 'lazy';
-        img.src = src;
-        img.alt = '';
-        card.appendChild(img);
-        card.addEventListener('click', ()=>openLB(src));
-        grid.appendChild(card);
+    // GitHub API: список файлов в uploads
+    const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FOLDER}?ref=${BRANCH}`;
+
+    msg.textContent = "Загружаю картинки…";
+
+    fetch(api)
+      .then(r => r.json())
+      .then(items => {
+        const files = (items || [])
+          .filter(x => x.type === "file" && /\.(jpg|jpeg|png|webp)$/i.test(x.name))
+          .map(x => x.download_url);
+
+        if(!files.length){
+          msg.textContent = "Пока нет картинок. Залей через Admin → Media → Upload (латиница).";
+          return;
+        }
+
+        msg.textContent = `Найдено картинок: ${files.length}`;
+
+        files.forEach(src => {
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          const img = document.createElement('img');
+          img.loading = 'lazy';
+          img.src = src;
+
+          card.appendChild(img);
+          card.addEventListener('click', ()=>openLB(src));
+          grid.appendChild(card);
+        });
+      })
+      .catch(() => {
+        msg.textContent = "Не смог прочитать uploads через GitHub API. Проверь: папка uploads и ветка main.";
       });
-    })
-    .catch(() => {
-      grid.innerHTML = '<p style="text-align:center;opacity:.7">Галерея не смогла прочитать список файлов. Скажи мне — и я дам запасной вариант без этого ограничения.</p>';
-    });
-</script>
-
+  </script>
 </body>
 </html>
