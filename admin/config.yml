@@ -1,15 +1,23 @@
 backend:
-  name: test-repo
+  name: git-gateway
+  branch: main
 
 media_folder: "uploads"
 public_folder: "/uploads"
 
 collections:
-  - name: "pages"
-    label: "Страницы"
+  - name: "gallery"
+    label: "Галерея"
     files:
-      - label: "Главная"
-        name: "home"
-        file: "index.html"
+      - label: "Список фото"
+        name: "gallery"
+        file: "gallery.json"
+        format: "json"
         fields:
-          - { label: "HTML", name: "body", widget: "text" }
+          - label: "Фото"
+            name: "items"
+            widget: "list"
+            fields:
+              - { label: "Название", name: "title", widget: "string" }
+              - { label: "Картинка", name: "image", widget: "image" }
+              - { label: "Описание", name: "desc", widget: "string", required: false }
