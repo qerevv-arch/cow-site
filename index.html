@@ -55,6 +55,13 @@
     .brand .title{font-size:clamp(22px,2.6vw,30px); letter-spacing:.2px;}
     .brand .subtitle{margin-top:4px; color:var(--muted); font-size:clamp(13px,1.9vw,15px);}
 
+    /* --- Actions (языки + кнопка галереи) --- */
+    .actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
     .lang{
       display:flex; gap:8px;
       background: rgba(255,255,255,.55);
@@ -75,6 +82,32 @@
     }
     .lang button:hover{transform: translateY(-1px);}
     .lang button.active{background: rgba(27,27,27,.08); color:var(--ink);}
+
+    /* --- НОРМАЛЬНАЯ КНОПКА "ГАЛЕРЕЯ" ПОД ЦВЕТ САЙТА --- */
+    .galleryBtn{
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.55);
+      color: var(--ink);
+      box-shadow: 0 8px 22px rgba(0,0,0,.06);
+      font-size:15px;
+      line-height:1;
+      transition: transform .08s ease, background .2s ease, box-shadow .2s ease;
+      white-space:nowrap;
+    }
+    .galleryBtn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.72);
+      box-shadow: 0 10px 26px rgba(0,0,0,.08);
+    }
+    .galleryBtn:active{
+      transform: translateY(0px);
+    }
 
     main{max-width:980px; margin:0 auto; width:100%; display:grid; grid-template-columns:1fr; gap:14px;}
     .card{
@@ -237,12 +270,16 @@
           <div class="subtitle" data-i18n="siteTagline">Мой путь к ясности 🌿</div>
         </div>
 
-        <nav class="lang" aria-label="Language switcher">
-          <button type="button" class="active" data-lang="ru">RU</button>
-          <button type="button" data-lang="en">EN</button>
-          <button type="button" data-lang="he">HE</button>
-        <a class="galleryBtn" href="gallery.html">Галерея</a>
-        </nav>
+        <!-- ВОТ ТУТ: языки + кнопка галереи -->
+        <div class="actions">
+          <nav class="lang" aria-label="Language switcher">
+            <button type="button" class="active" data-lang="ru">RU</button>
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="he">HE</button>
+          </nav>
+
+          <a class="galleryBtn" href="gallery.html">Галерея</a>
+        </div>
       </div>
     </header>
 
@@ -359,14 +396,10 @@
         </defs>
 
         <g class="cowBody">
-          <!-- shadow -->
           <ellipse cx="78" cy="128" rx="44" ry="9" fill="rgba(0,0,0,.10)"/>
-
-          <!-- tail -->
           <path d="M120 78 C133 84, 134 100, 122 108" fill="none" stroke="rgba(27,27,27,.28)" stroke-width="5" stroke-linecap="round"/>
           <path d="M123 108 C128 110, 130 116, 125 120 C119 125, 112 122, 113 116" fill="#d9a7a7" stroke="rgba(27,27,27,.18)" stroke-width="2"/>
 
-          <!-- body -->
           <path d="M52 58
                    C54 40, 70 30, 90 32
                    C114 35, 128 52, 124 76
@@ -375,14 +408,11 @@
                    Z"
                 fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
 
-          <!-- spots -->
           <path d="M72 48 C63 50, 60 60, 67 67 C75 75, 92 68, 88 56 C85 48, 79 46, 72 48 Z" fill="url(#spot)" opacity=".92"/>
           <path d="M98 70 C90 72, 88 84, 96 90 C106 98, 122 86, 116 74 C112 66, 106 68, 98 70 Z" fill="url(#spot)" opacity=".92"/>
 
-          <!-- neck -->
           <path d="M50 78 C36 76, 34 90, 44 100 C54 110, 66 104, 64 92" fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
 
-          <!-- head -->
           <path d="M22 86
                    C18 66, 34 52, 54 56
                    C72 60, 78 76, 72 94
@@ -390,28 +420,23 @@
                    C26 106, 23 98, 22 86 Z"
                 fill="url(#milkBody)" stroke="rgba(27,27,27,.22)" stroke-width="3" />
 
-          <!-- bangs (forelock) -->
           <path d="M48 58 C44 54, 40 54, 36 57 C34 58, 33 56, 35 54
                    C40 48, 50 48, 56 54 C58 56, 56 58, 54 57
                    C52 56, 50 57, 48 58 Z"
                 fill="#caa07a" opacity=".9" stroke="rgba(27,27,27,.10)" stroke-width="1"/>
 
-          <!-- ears -->
           <path d="M36 62 C26 56, 14 60, 13 70 C12 80, 22 86, 32 80" fill="#f1d9c7" stroke="rgba(27,27,27,.16)" stroke-width="2"/>
           <path d="M62 66 C74 62, 84 70, 82 82 C80 92, 70 96, 60 88" fill="#f1d9c7" stroke="rgba(27,27,27,.16)" stroke-width="2"/>
 
-          <!-- tiny horns -->
           <path d="M40 54 C38 46, 48 44, 52 50" fill="none" stroke="rgba(27,27,27,.22)" stroke-width="3.2" stroke-linecap="round"/>
           <path d="M56 54 C60 48, 70 50, 66 58" fill="none" stroke="rgba(27,27,27,.22)" stroke-width="3.2" stroke-linecap="round"/>
 
-          <!-- snout -->
           <path d="M30 96 C34 86, 50 84, 60 88 C70 92, 72 104, 64 110
                    C56 116, 40 116, 32 108 C28 104, 28 100, 30 96 Z"
                 fill="#d9a7a7" stroke="rgba(27,27,27,.16)" stroke-width="2.4"/>
           <ellipse cx="44" cy="104" rx="3.2" ry="2.2" fill="rgba(27,27,27,.42)"/>
           <ellipse cx="56" cy="106" rx="3.2" ry="2.2" fill="rgba(27,27,27,.42)"/>
 
-          <!-- big eyes + lashes -->
           <g class="eye">
             <ellipse cx="38" cy="78" rx="8.6" ry="9.2" fill="#fff" opacity=".96"/>
             <circle cx="40" cy="80" r="4.3" fill="#1b1b1b"/>
@@ -429,23 +454,19 @@
             <path d="M62 72 L64 66" stroke="rgba(27,27,27,.45)" stroke-width="2" stroke-linecap="round"/>
           </g>
 
-          <!-- mouth -->
           <path d="M40 112 C48 120, 58 118, 62 110" fill="none" stroke="rgba(27,27,27,.44)" stroke-width="3" stroke-linecap="round"/>
           <path class="mouthHappy" d="M36 110 C46 124, 62 122, 66 106" fill="none" stroke="rgba(27,27,27,.62)" stroke-width="3.6" stroke-linecap="round"/>
 
-          <!-- jaw -->
           <g class="jaw">
             <path d="M28 108 C34 116, 52 120, 66 114" fill="none" stroke="rgba(27,27,27,.20)" stroke-width="4" stroke-linecap="round"/>
           </g>
 
-          <!-- grass -->
           <g class="grass">
             <path d="M12 110 C4 112, 4 122, 13 124 C20 126, 24 118, 19 114 C17 112, 15 109, 12 110 Z"
                   fill="#6aa84f" stroke="rgba(27,27,27,.14)" stroke-width="2"/>
             <path d="M12 118 C16 118, 18 121, 20 123" fill="none" stroke="rgba(27,27,27,.12)" stroke-width="1.6" stroke-linecap="round"/>
           </g>
 
-          <!-- legs (front/back) -->
           <g class="legFront">
             <path d="M72 108 C70 118, 74 126, 82 126 C90 126, 90 116, 88 108" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
             <rect x="76" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
@@ -461,13 +482,11 @@
             <rect x="110" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
           </g>
 
-          <!-- scratching leg (rear) -->
           <g class="legBack rearLegScratch">
             <path d="M112 96 C124 104, 124 126, 112 126 C104 126, 100 114, 106 104" fill="url(#milkBody)" stroke="rgba(27,27,27,.20)" stroke-width="2.6"/>
             <rect x="108" y="124" width="12" height="4.8" rx="2.4" fill="#6b4c31"/>
           </g>
 
-          <!-- udder -->
           <g class="udder">
             <path d="M92 100 C94 90, 104 88, 112 92 C120 96, 122 106, 116 112
                      C110 118, 98 118, 94 110 C92 106, 91 103, 92 100 Z"
@@ -584,7 +603,6 @@
       }
     };
 
-    // --- language switch ---
     const root = document.documentElement;
     const langButtons = document.querySelectorAll(".lang button");
     const footerNote = document.getElementById("footerNote");
@@ -602,7 +620,6 @@
         if(dict[key] != null) el.textContent = dict[key];
       });
 
-      // lists
       document.querySelectorAll("[data-i18n-list='changes']").forEach(ul=>{
         ul.innerHTML = "";
         dict.changes.forEach(item=>{
@@ -612,16 +629,12 @@
         });
       });
 
-      // footer
       footerNote.textContent = dict.footerNote;
-
-      // update bubble for current state
       setBubbleText(currentState);
     }
 
     langButtons.forEach(btn => btn.addEventListener("click", () => applyLang(btn.dataset.lang)));
 
-    // --- Cusdis: fill placeholders so it works without templating ---
     (function hydrateCusdis(){
       const el = document.getElementById("cusdis_thread");
       if(!el) return;
@@ -632,7 +645,6 @@
       }catch(e){}
     })();
 
-    // --- Cow behavior ---
     const cowWrap = document.getElementById("cowWrap");
     const cowSvg = document.getElementById("cowSvg");
     const bubble = document.getElementById("bubble");
@@ -642,7 +654,6 @@
     let stateIndex = 0;
     let currentState = states[stateIndex];
 
-    // positions are fractions of viewport width
     const walk = {
       rightHome: 0.82,
       nearTree: 0.16,
@@ -682,10 +693,8 @@
     }
 
     function setFacing(targetFrac){
-      // flip if moving left
       const goingLeft = targetFrac < cowX;
       const sx = goingLeft ? -1 : 1;
-      // keep a slight scale for presence
       cowSvg.style.transform = `scaleX(${sx}) scale(1)`;
     }
 
@@ -694,7 +703,6 @@
       cowWrap.classList.add("isWalk");
       const x = Math.round(window.innerWidth * frac) - Math.round(cowWrap.offsetWidth/2);
       cowWrap.style.transform = "translateX(" + x + "px)";
-      // remove walking class after travel time
       clearTimeout(moveCowTo._t);
       moveCowTo._t = setTimeout(()=> cowWrap.classList.remove("isWalk"), 1100);
       cowX = frac;
@@ -703,9 +711,8 @@
     function animateEatApple(){
       if(!apples.length) return;
       const a = apples[Math.floor(Math.random() * apples.length)];
-      // if already animating, skip
       if(a._busy) return;
-      a._busy = True = true;
+      a._busy = true; /* FIX: раньше было True = true и это ломало скрипт */
       const anim = a.animate(
         [
           { transform: "translate(0,0)", opacity: 1 },
@@ -715,7 +722,6 @@
       );
       anim.onfinish = () => {
         a.style.opacity = "0";
-        // respawn
         setTimeout(()=>{
           a.style.opacity = "1";
           a._busy = false;
@@ -728,7 +734,6 @@
       moveCowTo(target);
 
       if(target === walk.nearTree){
-        // show "eat" + drop an apple, then chew
         const dict = i18n[root.lang] || i18n.ru;
         setBubbleText("eat", dict.bubble.eat);
         showBubbleAtCow(2200);
@@ -741,7 +746,6 @@
       }
     }
 
-    // click cycles states + bubble
     cowWrap.addEventListener("click", ()=>{
       stateIndex = (stateIndex + 1) % states.length;
       setCowState(states[stateIndex]);
@@ -749,7 +753,6 @@
       resetIdle();
     });
 
-    // idle: come center and tease, then go back
     let idleTimer = null;
     function resetIdle(){
       clearTimeout(idleTimer);
@@ -771,15 +774,13 @@
     });
 
     function initPositions(){
-      // place cow on the right at start
       cowX = walk.rightHome;
-      cowSvg.style.transform = "scaleX(-1) scale(1)"; // facing left at first
+      cowSvg.style.transform = "scaleX(-1) scale(1)";
       const x = Math.round(window.innerWidth * walk.rightHome) - Math.round(cowWrap.offsetWidth/2);
       cowWrap.style.transform = "translateX(" + x + "px)";
     }
     window.addEventListener("resize", initPositions);
 
-    // init
     applyLang("ru");
     setCowState("chew");
     initPositions();
